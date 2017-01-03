@@ -10,10 +10,17 @@
             [clj-http.client :as client]
             ))
 
+(def index-settings
+  {:settings {:number_of_shards 1
+              :number_of_replicas 2}
+   :mappings {"elliott" {:properties
+                         {:body {:type "string"
+                                 :index "not_analyzed"}}}}})
+
 (def repo-url (if-let [url (System/getenv "ELASISEARCH_URL")]
                 url
-                ;; "http://127.0.0.1:9200"
-                "http://192.168.0.220:9201"
+                "http://127.0.0.1:9200"
+                ;; "http://192.168.0.220:9201"
                 ;; "http://murphydye.com:9200"
                 ))
 (def repo
@@ -406,7 +413,7 @@
   {:pre [(contains? website :name)
          (contains? website :start-path)]}
   (try
-    (esi/create repo (website-index-name website))
+    (esi/create repo (website-index-name website) index-settings)
     (catch Exception e
       (println "index already exists" e)
       (when-not (->> e ex-data :body (re-find #"already exists"))
